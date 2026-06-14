@@ -652,15 +652,7 @@ h6 {
 }
 
 .service-pricing {
-  background-color: #E6F8F3;
-  color: var(--primary-hover);
-  padding: 6px 14px;
-  border-radius: 50px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  align-self: flex-start;
-  margin-bottom: 1.25rem;
-  display: inline-block;
+  display: none !important;
 }
 
 .service-card .btn-whatsapp {
