@@ -48,6 +48,107 @@ document.addEventListener('DOMContentLoaded', () => {
     navbarCollapseEl.addEventListener('hidden.bs.collapse', updateLogo);
   }
 
+  // Highlight the selected service card when a Services dropdown link is clicked
+  const serviceDropdownLinks = document.querySelectorAll('.services-dropdown-menu a[href^="#"]');
+  const servicesDropdown = document.querySelector('.services-dropdown');
+  const servicesDropdownToggle = document.querySelector('.services-dropdown-toggle');
+  const servicesGrid = document.getElementById('services-grid');
+  const servicesSeeMoreBtn = document.getElementById('services-see-more-btn');
+  const extraServices = servicesGrid ? [...servicesGrid.querySelectorAll('.service-extra')] : [];
+  const SERVICES_PER_ROW = 3;
+  let serviceHighlightTimer;
+
+  const updateServicesButton = () => {
+    if (!servicesSeeMoreBtn) return;
+
+    const visibleCount = extraServices.filter(service =>
+      service.classList.contains('service-visible')
+    ).length;
+    const allVisible = visibleCount === extraServices.length;
+
+    servicesSeeMoreBtn.setAttribute('aria-expanded', String(visibleCount > 0));
+    servicesSeeMoreBtn.innerHTML = allVisible
+      ? 'Show Less Services <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>'
+      : 'See More Services <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
+  };
+
+  const showServicesThrough = (lastIndex) => {
+    if (!servicesGrid) return;
+
+    extraServices.slice(0, lastIndex + 1).forEach(service => {
+      service.classList.add('service-visible', 'appear');
+    });
+    updateServicesButton();
+  };
+
+  servicesSeeMoreBtn?.addEventListener('click', () => {
+    const visibleCount = extraServices.filter(service =>
+      service.classList.contains('service-visible')
+    ).length;
+
+    if (visibleCount === extraServices.length) {
+      extraServices.forEach(service => service.classList.remove('service-visible'));
+      updateServicesButton();
+      return;
+    }
+
+    const lastIndex = Math.min(
+      visibleCount + SERVICES_PER_ROW - 1,
+      extraServices.length - 1
+    );
+    showServicesThrough(lastIndex);
+  });
+  if (servicesDropdown) {
+    servicesDropdown.addEventListener('mouseleave', () => {
+      servicesDropdown.classList.remove('dropdown-dismissed');
+    });
+  }
+
+  servicesDropdownToggle?.addEventListener('click', (event) => {
+    if (window.innerWidth > 991 || !servicesDropdown) return;
+
+    event.preventDefault();
+    servicesDropdown.classList.toggle('mobile-dropdown-open');
+    servicesDropdownToggle.setAttribute('aria-expanded', String(servicesDropdown.classList.contains('mobile-dropdown-open')));
+    servicesDropdown.classList.remove('dropdown-dismissed');
+  });
+
+  navbarCollapseEl?.addEventListener('hidden.bs.collapse', () => {
+    servicesDropdown?.classList.remove('mobile-dropdown-open');
+    servicesDropdownToggle?.setAttribute('aria-expanded', 'false');
+  });
+
+  serviceDropdownLinks.forEach(link => {
+    link.addEventListener('click', (event) => {
+      link.blur();
+      servicesDropdown?.classList.add('dropdown-dismissed');
+      servicesDropdown?.classList.remove('mobile-dropdown-open');
+      servicesDropdownToggle?.setAttribute('aria-expanded', 'false');
+
+      const serviceColumn = document.querySelector(link.getAttribute('href'));
+      const serviceCard = serviceColumn ? serviceColumn.querySelector('.service-card') : null;
+
+      if (!serviceCard) return;
+
+      event.preventDefault();
+      if (serviceColumn.classList.contains('service-extra')) {
+        showServicesThrough(extraServices.indexOf(serviceColumn));
+      }
+
+      document.querySelectorAll('.service-card-highlight').forEach(card => {
+        card.classList.remove('service-card-highlight');
+      });
+      clearTimeout(serviceHighlightTimer);
+
+      serviceColumn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      serviceCard.classList.add('service-card-highlight');
+
+      serviceHighlightTimer = setTimeout(() => {
+        serviceCard.classList.remove('service-card-highlight');
+      }, 2500);
+    });
+  });
+
   // 2. Before/After Sliders Interaction
   const sliders = document.querySelectorAll('.slider-container');
   
